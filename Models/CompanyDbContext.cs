@@ -18,7 +18,7 @@ public partial class CompanyDbContext : DbContext
 
     public virtual DbSet<CompanyNameDto> Organisations { get; set; }
 
-    public virtual DbSet<OrganisationOfficial> OrganisationOfficials { get; set; }
+    public virtual DbSet<OrganisationOfficialDto> OrganisationOfficials { get; set; }
 
     public virtual DbSet<RegisteredOffice> RegisteredOffices { get; set; }
 

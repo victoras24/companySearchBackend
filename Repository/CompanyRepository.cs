@@ -64,5 +64,16 @@ namespace CompanySearchBackend.Repository
             return result;
         }
 
+        public async Task<List<CompanyNameDto>> GetActiveOrganisation(string name)
+        {
+            var query = $@"SELECT TOP 10 
+            o.Registration_No as RegistrationNo, o.Name, o.Organisation_Status as OrganisationStatus
+        FROM organisations o
+        WHERE o.Name LIKE '%{name}%' AND o.Organisation_Status = 'Διαγραμμένη'";
+            
+            var result = await _companyDb.Organisations.FromSqlRaw(query).ToListAsync();
+            
+            return result;
+        }
     }
 }

@@ -13,6 +13,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<IOfficialRepository, OfficialRepository>();
 
 builder.Services.AddCors();
 

@@ -6,20 +6,13 @@ namespace CompanySearchBackend.Controllers
     [ApiController]
     [Route("api/company/")]
 
-    public class CompanyController : ControllerBase
+    public class CompanyController(ICompanyRepository companyRepository) : ControllerBase
     {
-        private readonly ICompanyRepository _companyRepository;
-
-        public CompanyController(ICompanyRepository companyRepository)
-        {
-            _companyRepository = companyRepository;
-        }
-
         [HttpGet("{name}")]
         public async Task<IActionResult> GetByName([FromRoute] string name)
         {
 
-            var companyName = await _companyRepository.GetCompanyAsync(name);
+            var companyName = await companyRepository.GetCompanyAsync(name);
 
             if (companyName  == null)
             {
@@ -33,7 +26,7 @@ namespace CompanySearchBackend.Controllers
         [HttpGet("{registrationNo}/detailed")]
         public async Task<IActionResult> GetAddressAndOfficialsByRegNo([FromRoute] int registrationNo)
         {
-            var detailedCompany = await _companyRepository.GetAddressAndOfficials(registrationNo);
+            var detailedCompany = await companyRepository.GetAddressAndOfficials(registrationNo);
 
             if (detailedCompany == null)
             {
@@ -41,6 +34,20 @@ namespace CompanySearchBackend.Controllers
             }
 
             return Ok(detailedCompany);
+        }
+
+        [HttpGet("{name}/active")]
+
+        public async Task<IActionResult> GetActiveOrganisations([FromRoute] string name)
+        {
+            var activeCompany = await companyRepository.GetActiveOrganisation(name);
+            
+            if (activeCompany == null)
+            {
+                return NotFound();
+            }
+            
+            return Ok(activeCompany);
         }
     }
 

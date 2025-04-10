@@ -8,5 +8,7 @@ namespace CompanySearchBackend.Interfaces
         Task<List<CompanyNameDto>> GetCompanyAsync(string name);
 
         Task<AddressAndOfficialsDto> GetAddressAndOfficials(int registrationNo);
+        
+        Task<List<CompanyNameDto>> GetActiveOrganisation(string name);
     }
 }
