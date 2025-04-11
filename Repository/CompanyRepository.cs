@@ -69,7 +69,19 @@ namespace CompanySearchBackend.Repository
             var query = $@"SELECT TOP 10 
             o.Registration_No as RegistrationNo, o.Name, o.Organisation_Status as OrganisationStatus
         FROM organisations o
-        WHERE o.Name LIKE '%{name}%' AND o.Organisation_Status = 'Διαγραμμένη'";
+        WHERE o.Name LIKE '%{name}%' AND o.Organisation_Status = N'Εγγεγραμμένη'";
+            
+            var result = await _companyDb.Organisations.FromSqlRaw(query).ToListAsync();
+            
+            return result;
+        }
+        
+        public async Task<List<CompanyNameDto>> GetInactiveOrganisation(string name)
+        {
+            var query = $@"SELECT TOP 10 
+            o.Registration_No as RegistrationNo, o.Name, o.Organisation_Status as OrganisationStatus
+        FROM organisations o
+        WHERE o.Name LIKE '%{name}%' AND o.Organisation_Status = N'Διαγραμμένη'";
             
             var result = await _companyDb.Organisations.FromSqlRaw(query).ToListAsync();
             

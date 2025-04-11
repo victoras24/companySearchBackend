@@ -49,6 +49,20 @@ namespace CompanySearchBackend.Controllers
             
             return Ok(activeCompany);
         }
+
+        [HttpGet("{name}/inactive")]
+        public async Task<IActionResult> GetInactiveOrganisations([FromRoute] string name)
+        {
+            var inactiveCompany = await companyRepository.GetInactiveOrganisation(name);
+            
+            if (inactiveCompany == null)
+            {
+                return NotFound();
+            }
+            
+            return Ok(inactiveCompany);
+        }
+        
     }
 
 }
