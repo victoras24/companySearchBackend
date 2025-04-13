@@ -4,88 +4,59 @@ using CompanySearchBackend.Mappers;
 using CompanySearchBackend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Postgrest;
+using Postgrest.Responses;
 
 namespace CompanySearchBackend.Repository
 {
     public class CompanyRepository : ICompanyRepository
     {
-        private readonly CompanyDbContext _companyDb;
-
-        public CompanyRepository(CompanyDbContext companyDb)
+        private readonly Supabase.Client _supabaseClient;
+        
+        public CompanyRepository(Supabase.Client supabaseClient)
         {
-            _companyDb = companyDb;
+            _supabaseClient = supabaseClient;
         }
 
-        public async Task<List<CompanyNameDto>> GetCompanyAsync(string name)
+        public async Task<List<Organisation>> GetCompanyAsync(string name)
         {
-            var query = $@"
-        SELECT TOP 10 
-            o.Registration_No as RegistrationNo, o.Name, o.Organisation_Status as OrganisationStatus
-        FROM organisations o
-        WHERE o.Name LIKE '%{name}%'";
-            var res = await _companyDb.Organisations.FromSqlRaw(query).ToListAsync();
+            var response = await _supabaseClient
+                .From<Organisation>()
+                .Filter(x => x.OrganisationName, Constants.Operator.ILike, $"%{name}%")
+                .Limit(10)
+                .Get();
 
-            return res;
-
+            return response.Models.ToList();
         }
 
-        public async Task<AddressAndOfficialsDto> GetAddressAndOfficials(int registrationNo)
+        public async Task<OrganisationWithOfficialsAndAddress?> GetAddressAndOfficials(string registrationNo)
         {
-            var query = $@"
-            SELECT
-                o.id, 
-                o.Name, 
-                o.Name_Status AS NameStatus, 
-                o.Organisation_Status AS OrganisationStatus, 
-                o.Organisation_Status_Date AS OrganisationStatusDate,
-                o.Organisation_Type AS OrganisationType, 
-                o.Registration_Date AS RegistrationDate, 
-                o.Registration_No AS RegistrationNo,
-
-            -- Address details
-                ro.ADDRESS_SEQ_NO,
-                ro.Street,
-                ro.Building,
-                ro.Territory,
-                
-            -- Aggregate officials in a single row
-                STRING_AGG(oo.Person_Or_Organisation_Name + ' (' + oo.OFFICIAL_POSITION + ')', ', ') AS Officials
-                FROM organisations o
-                LEFT JOIN registered_office ro ON o.Address_Seq_Number = ro.ADDRESS_SEQ_NO
-                LEFT JOIN organisation_officials oo ON o.Registration_No = oo.Registration_No
-                WHERE o.Registration_No = '{registrationNo}'
-                GROUP BY o.id, o.Name, o.Name_Status, o.Organisation_Status, o.Organisation_Status_Date,
-                o.Organisation_Type, o.Registration_Date, o.Registration_No,
-                ro.Street, ro.Building, ro.Territory, ro.ADDRESS_SEQ_NO
-            ";
-
-            var result = await _companyDb.RegisteredOffices.FromSqlRaw(query).FirstOrDefaultAsync();
-
-            return result;
+            var response = await _supabaseClient.From<OrganisationWithOfficialsAndAddress>()
+                .Filter(x => x.RegistrationNo, Constants.Operator.Equals, registrationNo)
+                .Get();
+            return response.Model;
         }
 
-        public async Task<List<CompanyNameDto>> GetActiveOrganisation(string name)
+        public async Task<List<Organisation>> GetActiveOrganisation(string name)
         {
-            var query = $@"SELECT TOP 10 
-            o.Registration_No as RegistrationNo, o.Name, o.Organisation_Status as OrganisationStatus
-        FROM organisations o
-        WHERE o.Name LIKE '%{name}%' AND o.Organisation_Status = N'Εγγεγραμμένη'";
-            
-            var result = await _companyDb.Organisations.FromSqlRaw(query).ToListAsync();
-            
-            return result;
+        var response = await _supabaseClient.From<Organisation>()
+            .Filter(x => x.OrganisationName, Constants.Operator.ILike, $"%{name}%")
+            .Filter(x => x.OrganisationStatus, Constants.Operator.Equals, "Εγγεγραμμένη")
+            .Limit(10)
+            .Get();
+        
+        return response.Models.ToList();
         }
         
-        public async Task<List<CompanyNameDto>> GetInactiveOrganisation(string name)
+        public async Task<List<Organisation>> GetInactiveOrganisation(string name)
         {
-            var query = $@"SELECT TOP 10 
-            o.Registration_No as RegistrationNo, o.Name, o.Organisation_Status as OrganisationStatus
-        FROM organisations o
-        WHERE o.Name LIKE '%{name}%' AND o.Organisation_Status = N'Διαγραμμένη'";
-            
-            var result = await _companyDb.Organisations.FromSqlRaw(query).ToListAsync();
-            
-            return result;
+            var response = await _supabaseClient.From<Organisation>()
+                .Filter(x => x.OrganisationName, Constants.Operator.ILike, $"%{name}%")
+                .Filter(x => x.OrganisationStatus, Constants.Operator.Equals, "Διαγραμμένη")
+                .Limit(10)
+                .Get();
+        
+            return response.Models.ToList();
         }
     }
 }

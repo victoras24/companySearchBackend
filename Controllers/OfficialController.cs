@@ -8,17 +8,17 @@ public class OfficialController(IOfficialRepository officialRepository) : Contro
 {
     private readonly IOfficialRepository _officialRepository = officialRepository;
 
-    [HttpGet("{name}")]
+    [HttpGet("{registrationNo}/detailed")]
 
-        public async Task<IActionResult> GetOfficialByName([FromRoute] string name)
+    public async Task<IActionResult> GetOfficialsByRegistrationNo([FromRoute] string registrationNo)
+    {
+        var official = await _officialRepository.GetOrganisationOfficials(registrationNo);
+
+        if (official == null)
         {
-            var officialName = await _officialRepository.GetOfficialAsync(name);
-            
-            if (officialName  == null)
-            {
-                return NotFound();
-            }
-            
-            return Ok(officialName);
+            return NotFound();
         }
+        
+        return Ok(official);
+    }
 }

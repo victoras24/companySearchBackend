@@ -5,5 +5,5 @@ namespace CompanySearchBackend.Interfaces;
 
 public interface IOfficialRepository
 {
-    Task<List<OrganisationOfficialDto>> GetOfficialAsync(string name);
+    Task<List<OrganisationOfficial>> GetOrganisationOfficials(string registrationNo);
 }

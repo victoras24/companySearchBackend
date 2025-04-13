@@ -2,23 +2,21 @@ using CompanySearchBackend.Dtos;
 using CompanySearchBackend.Interfaces;
 using CompanySearchBackend.Models;
 using Microsoft.EntityFrameworkCore;
+using Postgrest;
 
 namespace CompanySearchBackend.Repository;
 
-public class OfficialRepository(CompanyDbContext companyDb) : IOfficialRepository
+public class OfficialRepository(Supabase.Client supabaseDb) : IOfficialRepository
 {
-    private readonly CompanyDbContext _companyDb = companyDb;
+    private readonly Supabase.Client _supabaseClient = supabaseDb;
+    
 
-    public async Task<List<OrganisationOfficialDto>> GetOfficialAsync(string name)
+    public async Task<List<OrganisationOfficial>> GetOrganisationOfficials(string registrationNo)
     {
-        var query = $@"SELECT TOP 10 REGISTRATION_NO as RegistrationNo, ORGANISATION_NAME as OrganisationName,
-        STRING_AGG(Person_Or_Organisation_Name + ' is ' + OFFICIAL_POSITION + ' at ' + ORGANISATION_NAME, ', ') AS Officials
-    FROM organisation_officials
-    WHERE Person_Or_Organisation_Name LIKE N'%{name}%'
-    GROUP BY REGISTRATION_NO, ORGANISATION_NAME
-";
+        var response = await _supabaseClient.From<OrganisationOfficial>()
+            .Filter(x => x.RegistrationNo, Constants.Operator.Equals, registrationNo)
+            .Get();
 
-        return await _companyDb.OrganisationOfficials.FromSqlRaw(query).ToListAsync();
-
+        return response.Models;
     }
 }

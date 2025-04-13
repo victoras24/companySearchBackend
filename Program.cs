@@ -4,13 +4,25 @@ using CompanySearchBackend.Interfaces;
 using CompanySearchBackend.Repository;
 using CompanySearchBackend.StringEnc;
 using DotNetEnv;
+using Supabase;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<Supabase.Client>(_ =>
+    new Supabase.Client(
+        builder.Configuration["Supabase:Url"],
+        builder.Configuration["Supabase:Key"],
+        new SupabaseOptions
+        {
+            AutoRefreshToken = true,
+            AutoConnectRealtime = true
+        }));
 
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IOfficialRepository, OfficialRepository>();
@@ -36,10 +48,10 @@ string connString = "";
     }
 }
 
-builder.Services.AddDbContext<CompanyDbContext>(options =>
-{
-    options.UseSqlServer(connString);
-});
+// builder.Services.AddDbContext<CompanyDbContext>(options =>
+// {
+//     options.UseSqlServer(connString);
+// });
 
 var app = builder.Build();
 
@@ -55,7 +67,6 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = string.Empty;
 });
 
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 

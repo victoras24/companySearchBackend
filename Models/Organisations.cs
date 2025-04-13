@@ -1,36 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using Postgrest.Models;
+using Postgrest.Attributes;
 
 namespace CompanySearchBackend.Models;
 
-public class Organisations
+[Table("organisations")]
+public class Organisation : BaseModel
 {
-    [Key]
+    [PrimaryKey("id")]
     public int Id { get; set; }
 
-    public string? Name { get; set; }
+    [Column("name")]
+    public string? OrganisationName { get; set; }
 
-    public int? RegistrationNo { get; set; }
+    [Column("REGISTRATION_NO")]
+    public string RegistrationNo { get; set; }
 
+    [Column("ORGANISATION_TYPE_CODE")]
     public string? OrganisationTypeCode { get; set; }
 
+    [Column("ORGANISATION_TYPE")]
     public string? OrganisationType { get; set; }
 
+    [Column("ORGANISATION_SUB_TYPE")]
     public string? OrganisationSubType { get; set; }
 
+    [Column("NAME_STATUS_CODE")]
     public string? NameStatusCode { get; set; }
 
+    [Column("NAME_STATUS")]
     public string? NameStatus { get; set; }
 
-    public DateOnly? RegistrationDate { get; set; }
+    [Column("REGISTRATION_DATE")]
+    public string? RegistrationDate { get; set; }
 
+    [Column("ORGANISATION_STATUS")]
     public string? OrganisationStatus { get; set; }
 
-    public DateOnly? OrganisationStatusDate { get; set; }
+    [Column("ORGANISATION_STATUS_DATE")]
+    public string? OrganisationStatusDate { get; set; }
 
-    public int? AddressSeqNumber { get; set; }
-
-    public string? ExtraColumn { get; set; }
-
+    [Column("ADDRESS_SEQ_NO")]
+    public int? AddressSeqNo { get; set; }
 }

@@ -24,10 +24,10 @@ namespace CompanySearchBackend.Controllers
         }
 
         [HttpGet("{registrationNo}/detailed")]
-        public async Task<IActionResult> GetAddressAndOfficialsByRegNo([FromRoute] int registrationNo)
+        public async Task<IActionResult> GetAddressAndOfficialsByRegNo([FromRoute] string registrationNo)
         {
             var detailedCompany = await companyRepository.GetAddressAndOfficials(registrationNo);
-
+            
             if (detailedCompany == null)
             {
                 return NotFound();
