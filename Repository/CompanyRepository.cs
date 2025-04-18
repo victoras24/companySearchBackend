@@ -29,9 +29,9 @@ namespace CompanySearchBackend.Repository
             return response.Models.ToList();
         }
 
-        public async Task<OrganisationWithOfficialsAndAddress?> GetAddressAndOfficials(string registrationNo)
+        public async Task<Organisation?> GetAddressAndOfficials(string registrationNo)
         {
-            var response = await _supabaseClient.From<OrganisationWithOfficialsAndAddress>()
+            var response = await _supabaseClient.From<Organisation>()
                 .Filter(x => x.RegistrationNo, Constants.Operator.Equals, registrationNo)
                 .Get();
             return response.Model;

@@ -19,4 +19,14 @@ public class OfficialRepository(Supabase.Client supabaseDb) : IOfficialRepositor
 
         return response.Models;
     }
+
+    public async Task<List<OrganisationOfficial>> GetOfficials(string name)
+    {
+        var response = await _supabaseClient.From<OrganisationOfficial>()
+            .Filter(x => x.PersonOrOrganisationName, Constants.Operator.ILike, $"%{name}%")
+            .Limit(10)
+            .Get();
+        
+        return response.Models;
+    }
 }

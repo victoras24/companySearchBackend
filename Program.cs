@@ -12,12 +12,11 @@ builder.Services.AddControllers()
     .AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<Supabase.Client>(_ =>
     new Supabase.Client(
-        builder.Configuration["Supabase:Url"],
-        builder.Configuration["Supabase:Key"],
+        Environment.GetEnvironmentVariable("Url"),
+        Environment.GetEnvironmentVariable("Key"),
         new SupabaseOptions
         {
             AutoRefreshToken = true,
@@ -31,33 +30,12 @@ builder.Services.AddCors();
 
 Env.Load(".env");
 
-string connString = "";
-
-{
-    if (!builder.Environment.IsDevelopment())
-    {
-        connString = Environment.GetEnvironmentVariable("DB_ORGANISATIONS_CONN_STRING") ?? string.Empty;
-
-        var decryptor = new StringDecryptor("ElonMaHowYouDoingBruda!");
-        connString = decryptor.Decrypt(connString);
-
-    }
-    else
-    {
-        connString = builder.Configuration.GetConnectionString("CompanyConnection") ?? string.Empty;
-    }
-}
-
-// builder.Services.AddDbContext<CompanyDbContext>(options =>
-// {
-//     options.UseSqlServer(connString);
-// });
-
 var app = builder.Build();
 
 app.UseCors(options =>
 {
-    options.WithOrigins("http://localhost:5173");
+    options.WithOrigins("http://localhost:5173", "https://company-search-cy-vgib-delta.vercel.app/");
+    
 });
 
 app.UseSwagger();
