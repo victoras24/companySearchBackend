@@ -3,7 +3,7 @@ using Postgrest.Models;
 using Postgrest.Attributes;
 
 namespace CompanySearchBackend.Models;
-[Table("organisationwithofficials")]
+[Table("organisationwithregisteredoffice")]
 public class OrganisationWithOfficialsAndAddress : BaseModel
 {
     [PrimaryKey("id")]
@@ -12,25 +12,25 @@ public class OrganisationWithOfficialsAndAddress : BaseModel
     [Column("name")]
     public string? OrganisationName { get; set; }
 
-    [Column("registrationno")]
+    [Column("REGISTRATION_NO")]
     public string RegistrationNo { get; set; }
 
-    [Column("organisationtypecode")]
+    [Column("ORGANISATION_TYPE_CODE")]
     public string? OrganisationTypeCode { get; set; }
 
-    [Column("organisationtype")]
+    [Column("ORGANISATION_TYPE")]
     public string? OrganisationType { get; set; }
 
-    [Column("namestatus")]
+    [Column("NAME_STATUS")]
     public string? NameStatus { get; set; }
 
-    [Column("registrationdate")]
+    [Column("REGISTRATION_DATE")]
     public string? RegistrationDate { get; set; }
 
-    [Column("organisationstatus")]
+    [Column("ORGANISATION_STATUS")]
     public string? OrganisationStatus { get; set; }
 
-    [Column("organisationstatusdate")]
+    [Column("ORGANISATION_STATUS_DATE")]
     public string? OrganisationStatusDate { get; set; }
 
     [Column("ADDRESS_SEQ_NO")]
@@ -44,7 +44,4 @@ public class OrganisationWithOfficialsAndAddress : BaseModel
     
     [Column("TERRITORY")]
     public string? Territory { get; set; }
-    
-    [Column("OFFICIALS")]
-    public List<OfficialsDto> Officials { get; set; }
 }

@@ -34,8 +34,11 @@ var app = builder.Build();
 
 app.UseCors(options =>
 {
-    options.WithOrigins("http://localhost:5173", "https://company-search-cy-vgib-delta.vercel.app/", "https://company-search-cy-vgib-ajwi90uio-victoras24s-projects.vercel.app/");
-    
+    options.WithOrigins(
+        "http://localhost:5173", 
+        "http://localhost:5174",
+        "https://company-search-cy-vgib-delta.vercel.app/", 
+        "https://company-search-cy-vgib-ajwi90uio-victoras24s-projects.vercel.app/");
 });
 
 app.UseSwagger();
