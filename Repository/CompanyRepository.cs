@@ -12,21 +12,39 @@ namespace CompanySearchBackend.Repository
     public class CompanyRepository : ICompanyRepository
     {
         private readonly Supabase.Client _supabaseClient;
-        
-        public CompanyRepository(Supabase.Client supabaseClient)
+        private readonly ILogger _logger;
+
+        public CompanyRepository(Supabase.Client supabaseClient, ILogger<CompanyRepository> logger)
         {
             _supabaseClient = supabaseClient;
+            _logger = logger;
         }
 
         public async Task<List<Organisation>> GetCompanyAsync(string name)
         {
-            var response = await _supabaseClient
-                .From<Organisation>()
-                .Filter(x => x.OrganisationName, Constants.Operator.ILike, $"%{name}%")
-                .Limit(10)
-                .Get();
+            try
+            {
+                var response = await _supabaseClient
+                    .From<Organisation>()
+                    .Filter(x => x.OrganisationName, Constants.Operator.ILike, $"{name}%")
+                    .Limit(10)
+                    .Get()
+                    .ConfigureAwait(false);
+                return response.Models.ToList();
+            }
+            catch (Postgrest.Exceptions.PostgrestException ex) when (ex.Message.Contains("57014"))
+            {
+                _logger.LogWarning($"Query timeout for company search: {name}");
+        
+                return new List<Organisation>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error searching for company: {name}");
+                throw; 
+            }
+            
 
-            return response.Models.ToList();
         }
 
         public async Task<OrganisationWithOfficialsAndAddress> GetAddressAndOfficials(string registrationNo)
