@@ -26,20 +26,29 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IOfficialRepository, OfficialRepository>();
 
-builder.Services.AddCors();
+// Configure CORS properly
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowedOrigins", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5173", 
+                "http://localhost:5174",
+                "http://localhost:7256",
+                "https://company-search-cy-vgib-delta.vercel.app", // Removed trailing slash
+                "https://company-search-cy-vgib-ajwi90uio-victoras24s-projects.vercel.app") // Removed trailing slash
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // Add this if you need to send cookies or auth headers
+    });
+});
 
 Env.Load(".env");
 
 var app = builder.Build();
 
-app.UseCors(options =>
-{
-    options.WithOrigins(
-        "http://localhost:5173", 
-        "http://localhost:5174",
-        "https://company-search-cy-vgib-delta.vercel.app/", 
-        "https://company-search-cy-vgib-ajwi90uio-victoras24s-projects.vercel.app/");
-});
+// Use the named CORS policy
+app.UseCors("AllowedOrigins");
 
 app.UseSwagger();
 app.UseSwaggerUI(options =>
