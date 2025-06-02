@@ -23,7 +23,7 @@ namespace CompanySearchBackend.Dtos
         public string Officials { get; set; }
     }
 
-    public class Official
+    public class Off
     {
         public string Name { get; set; }
         public string Position { get; set; }

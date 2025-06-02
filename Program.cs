@@ -2,8 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using CompanySearchBackend.Models;
 using CompanySearchBackend.Interfaces;
 using CompanySearchBackend.Repository;
+using CompanySearchBackend.Services;
 using CompanySearchBackend.StringEnc;
 using DotNetEnv;
+using Microsoft.Extensions.Options;
 using Supabase;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,8 +25,12 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
             AutoConnectRealtime = true
         }));
 
+builder.Services.AddHttpClient<ICompanyService, CompanyService>();
+builder.Services.AddHttpClient<IAddressService, AddressService>();
+builder.Services.AddHttpClient<IOfficialService, OfficialService>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IOfficialRepository, OfficialRepository>();
+
 
 // Configure CORS properly
 builder.Services.AddCors(options =>
