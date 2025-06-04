@@ -41,8 +41,7 @@ builder.Services.AddCors(options =>
                 "http://localhost:5173", 
                 "http://localhost:5174",
                 "http://localhost:7256",
-                "https://company-search-cy-vgib-delta.vercel.app", // Removed trailing slash
-                "https://company-search-cy-vgib-ajwi90uio-victoras24s-projects.vercel.app") // Removed trailing slash
+                "https://yellow-smoke-02d271f03.6.azurestaticapps.net")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials(); // Add this if you need to send cookies or auth headers
