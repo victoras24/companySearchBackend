@@ -13,6 +13,7 @@ obj/
 # Ignore logs and database
 *.log
 appsettings.Development.json
+appsettings.Production.json
 appsettings.json
 
 # Ignore NuGet packages

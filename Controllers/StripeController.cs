@@ -14,11 +14,20 @@ public class CreateCheckoutRequest
 [Route("/api/create-checkout-session")]
 public class CheckoutApiController : Controller
 {
+    private readonly IConfiguration _configuration;
+
+    public CheckoutApiController(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
     [HttpPost]
     public ActionResult Create([FromBody] CreateCheckoutRequest request)
     {
-        var domain = "http://localhost:5173";
-        var stripeClient = new StripeClient(Environment.GetEnvironmentVariable("StripeSecretKey"));
+        var domain = _configuration["Frontend:Domain"];
+        var stripeSecretKey = _configuration["Stripe:SecretKey"];
+        
+        var stripeClient = new StripeClient(stripeSecretKey);
         var options = new SessionCreateOptions
         {
             InvoiceCreation = new SessionInvoiceCreationOptions
@@ -30,17 +39,17 @@ public class CheckoutApiController : Controller
                 new SessionLineItemOptions
                 {
                     Quantity = request.Quantity,
-                    Price = "price_1RQulOH7PDOZqMI1cfZElxXz",
+                    Price = _configuration["Stripe:CompanyReportPriceId"],
                 },
             },
             Mode = "payment",
             SuccessUrl = domain + "/payment-result?success=true&session_id={CHECKOUT_SESSION_ID}",
             CancelUrl = domain + "/payment-result?canceled=true",
         };
+        
         var service = new SessionService(stripeClient);
         Session session = service.Create(options);
 
         return Ok(new { url = session.Url });
     }
 }
-
