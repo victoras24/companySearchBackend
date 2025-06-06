@@ -18,7 +18,7 @@ public class OfficialService : IOfficialService
     }
 
 
-    public async Task<List<Officials>> GetOfficialsAsync(string registrationNo)
+    public async Task<List<Officials>> GetOfficialsByRegistrationNoAsync(string registrationNo)
     {
         try
         {
@@ -26,6 +26,43 @@ public class OfficialService : IOfficialService
             {
                 $"resource_id={OfficialResourceId}",
                 $"filters[registration_no]={registrationNo}"
+            };
+
+            var url = $"https://www.data.gov.cy/api/action/datastore/search.json?{string.Join("&", queryParams)}";
+            var response = await _httpClient.GetAsync(url);
+            var json = await response.Content.ReadAsStringAsync();
+
+            using var doc = JsonDocument.Parse(json);
+            var recordsElement = doc.RootElement
+                .GetProperty("result")
+                .GetProperty("records");
+
+            var officials = JsonSerializer.Deserialize<List<Officials>>(recordsElement.GetRawText(), new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return officials ?? new List<Officials>();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error searching organisations with registrationNo: {registrationNo}, registrationNo");
+            throw;
+        }
+    }
+
+    public async Task<List<Officials>> GetOfficialsAsync(string searchTerm)
+    {
+        try
+        {
+            var queryParams = new List<string>
+            {
+                $"resource_id={OfficialResourceId}",
+                $"fields[]=person_or_organisation_name",
+                $"&fields[]=official_position",
+                $"&fields[]=entry_id",
+                $"&fields[]=registration_no",
+                $"q={searchTerm}"
             };
 
             var url = $"https://www.data.gov.cy/api/action/datastore/search.json?{string.Join("&", queryParams)}";

@@ -55,11 +55,11 @@ public class OrganisationController(ILogger<OrganisationController> logger, ICom
     }
     
     [HttpGet("{registrationNo}/officials")]
-    public async Task<IActionResult> GetDetailedOfficialsData([FromRoute] string registrationNo)
+    public async Task<IActionResult> GetDetailedOfficialsDataByRegistrationNo([FromRoute] string registrationNo)
     {
         try
         {
-            var result = await officialService.GetOfficialsAsync(registrationNo);
+            var result = await officialService.GetOfficialsByRegistrationNoAsync(registrationNo);
             return Ok(result);
         }
         catch (Exception e)
@@ -68,4 +68,19 @@ public class OrganisationController(ILogger<OrganisationController> logger, ICom
             throw;
         }
     }
+    [HttpGet("officials/{searchTerm}")]
+    public async Task<IActionResult> GetDetailedOfficialsDataBySearchTerm([FromRoute] string searchTerm)
+    {
+        try
+        {
+            var result = await officialService.GetOfficialsAsync(searchTerm);
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+    
 }
