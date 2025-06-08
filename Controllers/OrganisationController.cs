@@ -24,12 +24,12 @@ public class OrganisationController(ILogger<OrganisationController> logger, ICom
         }
     }
 
-    [HttpGet("{addressSeqNo}/{entryId}/{registrationNo}/detailed")]
-    public async Task<IActionResult> GetDetailedOrganisationData([FromRoute] string addressSeqNo, [FromRoute] string entryId, [FromRoute] string registrationNo)
+    [HttpGet("{entryId}/{registrationNo}/detailed")]
+    public async Task<IActionResult> GetDetailedOrganisationData(  [FromRoute] string registrationNo, [FromRoute] string entryId)
     {
         try
         {
-            var result = await companyService.GetDetailedCompanyDataAsync(addressSeqNo, entryId, registrationNo);
+            var result = await companyService.GetDetailedCompanyDataAsync(registrationNo, entryId);
             return Ok(result);
         }
         catch (Exception e)

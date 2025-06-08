@@ -14,15 +14,15 @@ public class CompanyService : ICompanyService
     private readonly string _detailsCacheKeyPrefix = "companyDetails_";
 
     private const string OrganisationResourceId = "b48bf3b6-51f2-4368-8eaa-63d61836aaa9";
-    private const string AddressResourceId = "31d675a2-4335-40ba-b63c-d830d6b5c55d";
 
     private readonly MemoryCacheEntryOptions _searchCacheOptions = new()
     {
-        Priority = CacheItemPriority.Normal
+        AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7)
     };
 
     private readonly MemoryCacheEntryOptions _detailsCacheOptions = new()
     {
+        AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7)
     };
 
     public CompanyService(HttpClient httpClient, ILogger<CompanyService> logger, IMemoryCache memoryCache)
@@ -86,17 +86,17 @@ public class CompanyService : ICompanyService
         }
     }
 
-    public async Task<CompanyAndAddress?> GetDetailedCompanyDataAsync(string addressSeqNo, string entryId, string registrationNo)
+    public async Task<Company?> GetDetailedCompanyDataAsync( string entryId, string registrationNo)
     {
-        if (string.IsNullOrWhiteSpace(addressSeqNo) || string.IsNullOrWhiteSpace(entryId) || string.IsNullOrWhiteSpace(registrationNo))
+        if (string.IsNullOrWhiteSpace(entryId) || string.IsNullOrWhiteSpace(registrationNo))
         {
             _logger.LogWarning("Invalid parameters provided for GetDetailedCompanyDataAsync");
             return null;
         }
 
-        var cacheKey = $"{_detailsCacheKeyPrefix}{addressSeqNo}_{entryId}_{registrationNo}";
+        var cacheKey = $"{_detailsCacheKeyPrefix}{entryId}_{registrationNo}";
 
-        if (_memoryCache.TryGetValue(cacheKey, out CompanyAndAddress? cachedResult))
+        if (_memoryCache.TryGetValue(cacheKey, out Company? cachedResult))
         {
             _logger.LogInformation("Retrieved company details from cache for registration: {RegistrationNo}", registrationNo);
             return cachedResult;
@@ -108,13 +108,9 @@ public class CompanyService : ICompanyService
             
             var queryParams = new List<string>
             {
-                $"resource_id[pop]={OrganisationResourceId}",
-                $"resource_id[size]={AddressResourceId}",
-                $"filters[pop][ADDRESS_SEQ_NO]={Uri.EscapeDataString(addressSeqNo)}",
-                $"filters[pop][entry_id]={Uri.EscapeDataString(entryId)}",
-                $"filters[pop][registration_no]={Uri.EscapeDataString(registrationNo)}",
-                $"join[pop]=ADDRESS_SEQ_NO",
-                $"join[size]=ADDRESS_SEQ_NO",
+                $"resource_id={OrganisationResourceId}",
+                $"filters[entry_id]={entryId}",
+                $"filters[registration_no]={registrationNo}"
             };
             
             var url = $"https://www.data.gov.cy/api/action/datastore/search.json?{string.Join("&", queryParams)}";
@@ -129,7 +125,7 @@ public class CompanyService : ICompanyService
                 .GetProperty("result")
                 .GetProperty("records");
 
-            var companies = JsonSerializer.Deserialize<List<CompanyAndAddress>>(recordsElement.GetRawText(), new JsonSerializerOptions
+            var companies = JsonSerializer.Deserialize<List<Company>>(recordsElement.GetRawText(), new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
@@ -151,8 +147,8 @@ public class CompanyService : ICompanyService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error getting detailed company data for addressSeqNo: {AddressSeqNo}, entryId: {EntryId}, registrationNo: {RegistrationNo}", 
-                addressSeqNo, entryId, registrationNo);
+            _logger.LogError(e, "Error getting detailed company data for entryId: {EntryId}, registrationNo: {RegistrationNo}", 
+               entryId, registrationNo);
             throw;
         }
     }

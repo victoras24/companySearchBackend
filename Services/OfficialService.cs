@@ -19,16 +19,13 @@ public class OfficialService : IOfficialService
     
     private readonly MemoryCacheEntryOptions _officialsByRegNoCacheOptions = new()
     {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(2), 
-        SlidingExpiration = TimeSpan.FromMinutes(30), 
-        Priority = CacheItemPriority.High 
+        AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7)
+
     };
 
     private readonly MemoryCacheEntryOptions _officialsSearchCacheOptions = new()
     {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(20), 
-        SlidingExpiration = TimeSpan.FromMinutes(5), 
-        Priority = CacheItemPriority.Normal
+        AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7)
     };
 
     public OfficialService(HttpClient httpClient, ILogger<OfficialService> logger, IMemoryCache memoryCache)
