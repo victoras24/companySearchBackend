@@ -7,4 +7,5 @@ public interface IOfficialService
 {
     Task<List<Officials>> GetOfficialsByRegistrationNoAsync(string registrationNo);
     Task<List<Officials>> GetOfficialsAsync(string searchTerm);
+    Task<List<RelatedCompanyDto>> GetRelatedCompanies(string companyName);
 }

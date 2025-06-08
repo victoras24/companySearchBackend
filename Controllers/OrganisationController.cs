@@ -83,4 +83,18 @@ public class OrganisationController(ILogger<OrganisationController> logger, ICom
         }
     }
     
+    [HttpGet("related/{companyName}")]
+    public async Task<IActionResult> GetRelatedOrganisationData([FromRoute] string companyName)
+    {
+        try
+        {
+            var result = await officialService.GetRelatedCompanies(companyName);
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }
