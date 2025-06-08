@@ -11,6 +11,7 @@ builder.Services.AddControllers()
     .AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<Supabase.Client>(_ =>
     new Supabase.Client(
