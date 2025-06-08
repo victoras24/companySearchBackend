@@ -40,12 +40,6 @@ public class Company : BaseModel
     public string EntryId { get; set; }
 }
 
-public class ApiResponse
-{
-    public bool Success { get; set; }
-    public ResultData Result { get; set; }
-}
-
 public class ResultData
 {
     public List<Company> Records { get; set; }
