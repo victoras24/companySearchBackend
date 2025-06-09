@@ -10,4 +10,6 @@ public class RelatedCompanyDto
     public string RelatedCompany { get; set; }
     [JsonPropertyName("official_position")]
     public string OfficialPosition { get; set; }
+    [JsonPropertyName("registration_no")]
+    public string RegistrationNo { get; set; }
 }

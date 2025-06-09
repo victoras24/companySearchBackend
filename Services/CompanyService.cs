@@ -55,7 +55,7 @@ public class CompanyService : ICompanyService
             var queryParams = new List<string>
             {
                 $"resource_id={OrganisationResourceId}",
-                $"q={Uri.EscapeDataString(searchTerm)}", 
+                $"q={Uri.EscapeDataString(searchTerm)}",
             };
         
             var url = $"https://www.data.gov.cy/api/action/datastore/search.json?{string.Join("&", queryParams)}";
@@ -86,15 +86,15 @@ public class CompanyService : ICompanyService
         }
     }
 
-    public async Task<Company?> GetDetailedCompanyDataAsync( string entryId, string registrationNo)
+    public async Task<Company?> GetDetailedCompanyDataAsync( string registrationNo)
     {
-        if (string.IsNullOrWhiteSpace(entryId) || string.IsNullOrWhiteSpace(registrationNo))
+        if ( string.IsNullOrWhiteSpace(registrationNo))
         {
             _logger.LogWarning("Invalid parameters provided for GetDetailedCompanyDataAsync");
             return null;
         }
 
-        var cacheKey = $"{_detailsCacheKeyPrefix}{entryId}_{registrationNo}";
+        var cacheKey = $"{_detailsCacheKeyPrefix}{registrationNo}";
 
         if (_memoryCache.TryGetValue(cacheKey, out Company? cachedResult))
         {
@@ -109,7 +109,6 @@ public class CompanyService : ICompanyService
             var queryParams = new List<string>
             {
                 $"resource_id={OrganisationResourceId}",
-                $"filters[entry_id]={entryId}",
                 $"filters[registration_no]={registrationNo}"
             };
             
@@ -147,8 +146,7 @@ public class CompanyService : ICompanyService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error getting detailed company data for entryId: {EntryId}, registrationNo: {RegistrationNo}", 
-               entryId, registrationNo);
+            _logger.LogError(e, "Error getting detailed company data for registrationNo: {RegistrationNo}", registrationNo);
             throw;
         }
     }
