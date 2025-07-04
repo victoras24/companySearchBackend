@@ -5,11 +5,9 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace CompanySearchBackend.Services;
 
-public class CompanyService : ICompanyService
+public class CompanyService(HttpClient httpClient, ILogger<CompanyService> logger, IMemoryCache memoryCache)
+    : ICompanyService
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<CompanyService> _logger;
-    private readonly IMemoryCache _memoryCache;
     private readonly string _searchCacheKeyPrefix = "companySearch_";
     private readonly string _detailsCacheKeyPrefix = "companyDetails_";
 
@@ -25,13 +23,6 @@ public class CompanyService : ICompanyService
         AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7)
     };
 
-    public CompanyService(HttpClient httpClient, ILogger<CompanyService> logger, IMemoryCache memoryCache)
-    {
-        _httpClient = httpClient;
-        _logger = logger;
-        _memoryCache = memoryCache;
-    }
-
     public async Task<List<Company>> SearchCompaniesAsync(string searchTerm)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
@@ -42,15 +33,15 @@ public class CompanyService : ICompanyService
         var normalizedSearchTerm = searchTerm.Trim().ToLowerInvariant();
         var cacheKey = $"{_searchCacheKeyPrefix}{normalizedSearchTerm}";
 
-        if (_memoryCache.TryGetValue(cacheKey, out List<Company>? cachedResults))
+        if (memoryCache.TryGetValue(cacheKey, out List<Company>? cachedResults))
         {
-            _logger.LogInformation("Retrieved search results from cache for term: {SearchTerm}", searchTerm);
+            logger.LogInformation("Retrieved search results from cache for term: {SearchTerm}", searchTerm);
             return cachedResults ?? new List<Company>();
         }
 
         try
         {
-            _logger.LogInformation("Fetching search results from API for term: {SearchTerm}", searchTerm);
+            logger.LogInformation("Fetching search results from API for term: {SearchTerm}", searchTerm);
             
             var queryParams = new List<string>
             {
@@ -59,7 +50,7 @@ public class CompanyService : ICompanyService
             };
         
             var url = $"https://www.data.gov.cy/api/action/datastore/search.json?{string.Join("&", queryParams)}";
-            var response = await _httpClient.GetAsync(url);
+            var response = await httpClient.GetAsync(url);
             
             
             var json = await response.Content.ReadAsStringAsync();
@@ -74,14 +65,14 @@ public class CompanyService : ICompanyService
                 PropertyNameCaseInsensitive = true
             }) ?? new List<Company>();
 
-            _memoryCache.Set(cacheKey, companies, _searchCacheOptions);
-            _logger.LogInformation("Cached search results for term: {SearchTerm}. Found {Count} companies", searchTerm, companies.Count);
+            memoryCache.Set(cacheKey, companies, _searchCacheOptions);
+            logger.LogInformation("Cached search results for term: {SearchTerm}. Found {Count} companies", searchTerm, companies.Count);
 
             return companies;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error searching organisations with term: {SearchTerm}", searchTerm);
+            logger.LogError(e, "Error searching organisations with term: {SearchTerm}", searchTerm);
             throw;
         }
     }
@@ -90,21 +81,21 @@ public class CompanyService : ICompanyService
     {
         if ( string.IsNullOrWhiteSpace(registrationNo))
         {
-            _logger.LogWarning("Invalid parameters provided for GetDetailedCompanyDataAsync");
+            logger.LogWarning("Invalid parameters provided for GetDetailedCompanyDataAsync");
             return null;
         }
 
         var cacheKey = $"{_detailsCacheKeyPrefix}{registrationNo}";
 
-        if (_memoryCache.TryGetValue(cacheKey, out Company? cachedResult))
+        if (memoryCache.TryGetValue(cacheKey, out Company? cachedResult))
         {
-            _logger.LogInformation("Retrieved company details from cache for registration: {RegistrationNo}", registrationNo);
+            logger.LogInformation("Retrieved company details from cache for registration: {RegistrationNo}", registrationNo);
             return cachedResult;
         }
 
         try
         {
-            _logger.LogInformation("Fetching company details from API for registration: {RegistrationNo}", registrationNo);
+            logger.LogInformation("Fetching company details from API for registration: {RegistrationNo}", registrationNo);
             
             var queryParams = new List<string>
             {
@@ -113,7 +104,7 @@ public class CompanyService : ICompanyService
             };
             
             var url = $"https://www.data.gov.cy/api/action/datastore/search.json?{string.Join("&", queryParams)}";
-            var response = await _httpClient.GetAsync(url);
+            var response = await httpClient.GetAsync(url);
             
             response.EnsureSuccessStatusCode();
             
@@ -131,22 +122,22 @@ public class CompanyService : ICompanyService
 
             var company = companies?.FirstOrDefault();
             
-            _memoryCache.Set(cacheKey, company, _detailsCacheOptions);
+            memoryCache.Set(cacheKey, company, _detailsCacheOptions);
             
             if (company != null)
             {
-                _logger.LogInformation("Cached company details for registration: {RegistrationNo}", registrationNo);
+                logger.LogInformation("Cached company details for registration: {RegistrationNo}", registrationNo);
             }
             else
             {
-                _logger.LogInformation("No company found for registration: {RegistrationNo} - cached null result", registrationNo);
+                logger.LogInformation("No company found for registration: {RegistrationNo} - cached null result", registrationNo);
             }
 
             return company;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error getting detailed company data for registrationNo: {RegistrationNo}", registrationNo);
+            logger.LogError(e, "Error getting detailed company data for registrationNo: {RegistrationNo}", registrationNo);
             throw;
         }
     }
@@ -154,10 +145,10 @@ public class CompanyService : ICompanyService
     // Optional: Method to clear cache if needed
     public void ClearCache()
     {
-        if (_memoryCache is MemoryCache mc)
+        if (memoryCache is MemoryCache mc)
         {
             mc.Clear();
-            _logger.LogInformation("Cache cleared");
+            logger.LogInformation("Cache cleared");
         }
     }
 
@@ -166,15 +157,15 @@ public class CompanyService : ICompanyService
     {
         var normalizedSearchTerm = searchTerm.Trim().ToLowerInvariant();
         var cacheKey = $"{_searchCacheKeyPrefix}{normalizedSearchTerm}";
-        _memoryCache.Remove(cacheKey);
-        _logger.LogInformation("Cleared cache for search term: {SearchTerm}", searchTerm);
+        memoryCache.Remove(cacheKey);
+        logger.LogInformation("Cleared cache for search term: {SearchTerm}", searchTerm);
     }
 
     // Optional: Method to clear specific company details cache
-    public void ClearCompanyDetailsCache(string addressSeqNo, string entryId, string registrationNo)
+    public void ClearCompanyDetailsCache(string registrationNo)
     {
-        var cacheKey = $"{_detailsCacheKeyPrefix}{addressSeqNo}_{entryId}_{registrationNo}";
-        _memoryCache.Remove(cacheKey);
-        _logger.LogInformation("Cleared cache for company with registration: {RegistrationNo}", registrationNo);
+        var cacheKey = $"{_detailsCacheKeyPrefix}{registrationNo}";
+        memoryCache.Remove(cacheKey);
+        logger.LogInformation("Cleared cache for company with registration: {RegistrationNo}", registrationNo);
     }
 }

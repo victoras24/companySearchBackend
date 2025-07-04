@@ -1,17 +1,23 @@
 using CompanySearchBackend.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace CompanySearchBackend.Controllers;
 
 [ApiController]
 [Route("api/organisation")]
-public class OrganisationController(ILogger<OrganisationController> logger, ICompanyService companyService, IAddressService addressService, IOfficialService officialService)
+
+public class OrganisationController(ILogger<OrganisationController> logger, ICompanyService companyService, IAddressService addressService, IOfficialService officialService, IMemoryCache memoryCache)
     : ControllerBase
 {
+    private readonly string _searchCacheKeyPrefix = "companySearch_";
+    private readonly string _detailsCacheKeyPrefix = "companyDetails_";
+    private readonly ILogger _logger = logger;
 
     [HttpGet("{searchTerm}")]
     public async Task<ActionResult<List<Company>>> SearchOrganisations(string searchTerm)
     {
+        
         try
         {
             var result = await companyService.SearchCompaniesAsync(searchTerm);
@@ -96,5 +102,38 @@ public class OrganisationController(ILogger<OrganisationController> logger, ICom
             Console.WriteLine(e);
             throw;
         }
+    }
+    
+    [HttpDelete("clear")]
+    public IActionResult ClearCache()
+    {
+        if (memoryCache is MemoryCache mc)
+        {
+            mc.Clear();
+            _logger.LogInformation("Cleared cache");
+
+        }
+        
+        return Ok(new { message = "Cache cleared successfully" });
+    }
+
+    [HttpDelete("search/{searchTerm}")]
+    public IActionResult ClearSearchCache(string searchTerm)
+    {
+        var normalizedSearchTerm = searchTerm.Trim().ToLowerInvariant();
+        var cacheKey = $"{_searchCacheKeyPrefix}{normalizedSearchTerm}";
+        memoryCache.Remove(cacheKey);
+        _logger.LogInformation("Cleared cache for search term: {SearchTerm}", searchTerm);
+
+        return Ok(new { message = $"Search cache cleared for: {searchTerm}" });
+    }
+
+    [HttpDelete("company/{registrationNo}")]
+    public IActionResult ClearCompanyCache(string registrationNo)
+    {
+        var cacheKey = $"{_detailsCacheKeyPrefix}{registrationNo}";
+        memoryCache.Remove(cacheKey);
+        _logger.LogInformation("Cleared cache for company with registration: {RegistrationNo}", registrationNo);
+        return Ok(new { message = $"Company cache cleared for: {registrationNo}" });
     }
 }
