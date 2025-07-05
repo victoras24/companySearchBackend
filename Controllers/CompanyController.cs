@@ -59,6 +59,19 @@ namespace CompanySearchBackend.Controllers
             
             return Ok(companyKeyPeople);
         }
+
+        [HttpGet("{companyName}/related")]
+        public async Task<IActionResult> GetCompanyRelatedCompany(string companyName)
+        {
+            var related = await companyRepository.GetCompanyRelated(companyName);
+
+            if (related is null)
+            {
+                return NotFound();
+            }
+            
+            return Ok(related);
+        }
         
         [HttpGet("{name}/active")]
 

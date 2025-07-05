@@ -76,6 +76,17 @@ namespace CompanySearchBackend.Repository
             return companyKeyPeople;
         }
 
+        public Task<List<Officials>> GetCompanyRelated(string organizationName)
+        {
+            var related = _supabaseClient.From<Officials>()
+                .Filter(x => x.PersonOrOrganisationName, Constants.Operator.Equals, organizationName)
+                .Get()
+                .Result
+                .Models;
+            
+            return Task.FromResult(related);
+        }
+
         public async Task<List<Organisation>> GetActiveOrganisation(string name)
         {
         var response = await _supabaseClient.From<Organisation>()
