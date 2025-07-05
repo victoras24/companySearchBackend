@@ -1,22 +1,20 @@
-using System.Text.Json.Serialization;
+using Postgrest.Attributes;
 using Postgrest.Models;
 
 namespace CompanySearchBackend.Models;
 
+[Table("address")]
 public class Address : BaseModel
 {
-    [JsonPropertyName("address_seq_no")]
-    public string AddressSeqNo { get; set; }
+    [PrimaryKey("address_seq_no")]
+    public int AddressSeqNo { get; set; }
     
-    [JsonPropertyName("street")]
+    [Column("street")]
     public string Street { get; set; }
     
-    [JsonPropertyName("building")]
+    [Column("building")]
     public string Building { get; set; }
     
-    [JsonPropertyName("territory")]
+    [Column("territory")]
     public string Territory { get; set; }
-    
-    [JsonPropertyName("entry_id")]
-    public string EntryId { get; set; }
 }

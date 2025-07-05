@@ -10,36 +10,18 @@ public class Organisation : BaseModel
     [PrimaryKey("id")]
     public int Id { get; set; }
 
-    [Column("name")]
+    [Column("organisation_name")]
     public string? OrganisationName { get; set; }
 
-    [Column("REGISTRATION_NO")]
+    [Column("registration_no")]
     public string RegistrationNo { get; set; }
 
-    [Column("ORGANISATION_TYPE_CODE")]
-    public string? OrganisationTypeCode { get; set; }
-
-    [Column("ORGANISATION_TYPE")]
-    public string? OrganisationType { get; set; }
-
-    [Column("ORGANISATION_SUB_TYPE")]
-    public string? OrganisationSubType { get; set; }
-
-    [Column("NAME_STATUS_CODE")]
-    public string? NameStatusCode { get; set; }
-
-    [Column("NAME_STATUS")]
-    public string? NameStatus { get; set; }
-
-    [Column("REGISTRATION_DATE")]
+    [Column("registration_date")]
     public string? RegistrationDate { get; set; }
 
-    [Column("ORGANISATION_STATUS")]
+    [Column("organisation_status")]
     public string? OrganisationStatus { get; set; }
 
-    [Column("ORGANISATION_STATUS_DATE")]
-    public string? OrganisationStatusDate { get; set; }
-
-    [Column("ADDRESS_SEQ_NO")]
+    [Column("address_seq_no")]
     public int? AddressSeqNo { get; set; }
 }

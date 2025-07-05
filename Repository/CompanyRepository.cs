@@ -26,8 +26,8 @@ namespace CompanySearchBackend.Repository
             {
                 var response = await _supabaseClient
                     .From<Organisation>()
-                    .Filter(x => x.OrganisationName, Constants.Operator.ILike, $"{name}%")
-                    .Limit(10)
+                    .Filter(x => x.OrganisationName, Constants.Operator.ILike, $"%{name}%")
+                    .Limit(5)
                     .Get()
                     .ConfigureAwait(false);
                 return response.Models.ToList();
@@ -47,12 +47,22 @@ namespace CompanySearchBackend.Repository
 
         }
 
-        public async Task<OrganisationWithOfficialsAndAddress> GetAddressAndOfficials(string registrationNo)
+        public async Task<Task<ModeledResponse<Organisation>>> GetCompanyDetailed(string registrationNo)
         {
-            var response = await _supabaseClient.From<OrganisationWithOfficialsAndAddress>()
+            var company = _supabaseClient.From<Organisation>()
                 .Filter(x => x.RegistrationNo, Constants.Operator.Equals, registrationNo)
                 .Get();
-            return response.Model;
+            
+            return company;
+        }
+
+        public async Task<ModeledResponse<Address>> GetCompanyAddress(int addressSeqNo)
+        {
+            var companyAddress = await _supabaseClient.From<Address>()
+                .Filter(x => x.AddressSeqNo, Constants.Operator.Equals, addressSeqNo)
+                .Get();
+            
+            return companyAddress;
         }
 
         public async Task<List<Organisation>> GetActiveOrganisation(string name)

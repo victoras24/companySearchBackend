@@ -8,7 +8,9 @@ namespace CompanySearchBackend.Interfaces
     {
         Task<List<Organisation>> GetCompanyAsync(string name);
 
-        Task<OrganisationWithOfficialsAndAddress> GetAddressAndOfficials(string registrationNo);
+        Task<Task<ModeledResponse<Organisation>>> GetCompanyDetailed(string registrationNo);
+        
+        Task<ModeledResponse<Address>> GetCompanyAddress(int registrationNo);
         
         Task<List<Organisation>> GetActiveOrganisation(string name);
         

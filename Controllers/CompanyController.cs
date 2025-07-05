@@ -24,16 +24,27 @@ namespace CompanySearchBackend.Controllers
         }
 
         [HttpGet("{registrationNo}/detailed")]
-        public async Task<IActionResult> GetAddressAndOfficialsByRegNo([FromRoute] string registrationNo)
+        public async Task<IActionResult> GetDetailedCompanyData([FromRoute] string registrationNo)
         {
-            var detailedCompany = await companyRepository.GetAddressAndOfficials(registrationNo);
+            var detailedCompany = await companyRepository.GetCompanyDetailed(registrationNo);
             
             if (detailedCompany == null)
             {
                 return NotFound();
             }
 
-            return Ok(detailedCompany);
+            return Ok(detailedCompany.Result.Models);
+        }
+
+        [HttpGet("{addressSeqNo}/address")]
+        public async Task<IActionResult> GetCompanyAddress(int addressSeqNo)
+        {
+            var companyAddress = await companyRepository.GetCompanyAddress(addressSeqNo);
+            if (companyAddress == null)
+            {
+                return NotFound();
+            }
+            return Ok(companyAddress.Model);
         }
 
         [HttpGet("{name}/active")]
