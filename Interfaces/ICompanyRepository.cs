@@ -12,6 +12,8 @@ namespace CompanySearchBackend.Interfaces
         
         Task<ModeledResponse<Address>> GetCompanyAddress(int registrationNo);
         
+        Task<List<Officials>> GetCompanyKeyPeople(string registrationNo);
+        
         Task<List<Organisation>> GetActiveOrganisation(string name);
         
         Task<List<Organisation>> GetInactiveOrganisation(string name);

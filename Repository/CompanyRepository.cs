@@ -65,6 +65,17 @@ namespace CompanySearchBackend.Repository
             return companyAddress;
         }
 
+        public async Task<List<Officials>> GetCompanyKeyPeople(string registrationNo)
+        {
+            var companyKeyPeople = _supabaseClient.From<Officials>()
+                .Filter(x => x.RegistrationNo, Constants.Operator.Equals, registrationNo)
+                .Get()
+                .Result
+                .Models;
+            
+            return companyKeyPeople;
+        }
+
         public async Task<List<Organisation>> GetActiveOrganisation(string name)
         {
         var response = await _supabaseClient.From<Organisation>()

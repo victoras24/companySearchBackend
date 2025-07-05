@@ -47,6 +47,19 @@ namespace CompanySearchBackend.Controllers
             return Ok(companyAddress.Model);
         }
 
+        [HttpGet("{registrationNo}/key-people")]
+        public async Task<IActionResult> GetCompanyKeyPeople(string registrationNo)
+        {
+            var companyKeyPeople = await companyRepository.GetCompanyKeyPeople(registrationNo);
+
+            if (companyKeyPeople is null)
+            {
+                return NotFound();
+            }
+            
+            return Ok(companyKeyPeople);
+        }
+        
         [HttpGet("{name}/active")]
 
         public async Task<IActionResult> GetActiveOrganisations([FromRoute] string name)
