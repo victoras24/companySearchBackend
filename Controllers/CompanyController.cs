@@ -14,7 +14,7 @@ namespace CompanySearchBackend.Controllers
 
             var companyName = await companyRepository.GetCompanyAsync(name);
 
-            if (companyName  == null)
+            if (companyName  is null)
             {
                 return NotFound();
             }
@@ -28,7 +28,7 @@ namespace CompanySearchBackend.Controllers
         {
             var detailedCompany = await companyRepository.GetCompanyDetailed(registrationNo);
             
-            if (detailedCompany == null)
+            if (detailedCompany is null)
             {
                 return NotFound();
             }
@@ -40,7 +40,7 @@ namespace CompanySearchBackend.Controllers
         public async Task<IActionResult> GetCompanyAddress(int addressSeqNo)
         {
             var companyAddress = await companyRepository.GetCompanyAddress(addressSeqNo);
-            if (companyAddress == null)
+            if (companyAddress is null)
             {
                 return NotFound();
             }
@@ -79,7 +79,7 @@ namespace CompanySearchBackend.Controllers
         {
             var activeCompany = await companyRepository.GetActiveOrganisation(name);
             
-            if (activeCompany == null)
+            if (activeCompany is null)
             {
                 return NotFound();
             }
@@ -92,12 +92,25 @@ namespace CompanySearchBackend.Controllers
         {
             var inactiveCompany = await companyRepository.GetInactiveOrganisation(name);
             
-            if (inactiveCompany == null)
+            if (inactiveCompany is null)
             {
                 return NotFound();
             }
             
             return Ok(inactiveCompany);
+        }
+        
+        [HttpGet("officials/{searchTem}")]
+        public async Task<IActionResult> GetOfficials([FromRoute] string searchTem)
+        {
+            var officials = await companyRepository.GetOfficialsAsync(searchTem);
+            
+            if (officials is null)
+            {
+                return NotFound();
+            }
+            
+            return Ok(officials);
         }
         
     }

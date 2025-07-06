@@ -18,5 +18,8 @@ namespace CompanySearchBackend.Interfaces
         Task<List<Organisation>> GetActiveOrganisation(string name);
         
         Task<List<Organisation>> GetInactiveOrganisation(string name);
+        
+        Task<List<Officials>> GetOfficialsAsync(string searchTerm);
+
     }
 }

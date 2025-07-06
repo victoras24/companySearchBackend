@@ -92,7 +92,7 @@ namespace CompanySearchBackend.Repository
         var response = await _supabaseClient.From<Organisation>()
             .Filter(x => x.OrganisationName, Constants.Operator.ILike, $"%{name}%")
             .Filter(x => x.OrganisationStatus, Constants.Operator.Equals, "Εγγεγραμμένη")
-            .Limit(10)
+            .Limit(5)
             .Get();
         
         return response.Models.ToList();
@@ -102,11 +102,21 @@ namespace CompanySearchBackend.Repository
         {
             var response = await _supabaseClient.From<Organisation>()
                 .Filter(x => x.OrganisationName, Constants.Operator.ILike, $"%{name}%")
-                .Filter(x => x.OrganisationStatus, Constants.Operator.Equals, "Διαγραμμένη")
-                .Limit(10)
+                .Where(x => x.OrganisationStatus != "Διαγραμμένη")
+                .Limit(5)
                 .Get();
         
             return response.Models.ToList();
+        }
+        
+        public async Task<List<Officials>> GetOfficialsAsync(string name)
+        {
+            var response = await _supabaseClient.From<Officials>()
+                .Filter(x => x.PersonOrOrganisationName, Constants.Operator.ILike, $"%{name}%")
+                .Limit(5)
+                .Get();
+        
+            return response.Models;
         }
     }
 }

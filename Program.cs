@@ -27,7 +27,6 @@ builder.Services.AddHttpClient<ICompanyService, CompanyService>();
 builder.Services.AddHttpClient<IAddressService, AddressService>();
 builder.Services.AddHttpClient<IOfficialService, OfficialService>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
-builder.Services.AddScoped<IOfficialRepository, OfficialRepository>();
 
 builder.Services.AddCors(options =>
 {
