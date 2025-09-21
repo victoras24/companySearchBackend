@@ -1,171 +1,97 @@
-using System.Text.Json;
 using CompanySearchBackend.Interfaces;
 using CompanySearchBackend.Models;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace CompanySearchBackend.Services;
 
-public class CompanyService(HttpClient httpClient, ILogger<CompanyService> logger, IMemoryCache memoryCache)
-    : ICompanyService
+public class CompanyService : ICompanyService
 {
-    private readonly string _searchCacheKeyPrefix = "companySearch_";
-    private readonly string _detailsCacheKeyPrefix = "companyDetails_";
+    private readonly IMemoryCache _memoryCache;
+    private readonly ICompanyRepository _companyRepository;
+    private readonly ILogger<CompanyService> _logger;
 
-    private const string OrganisationResourceId = "b48bf3b6-51f2-4368-8eaa-63d61836aaa9";
-
-    private readonly MemoryCacheEntryOptions _searchCacheOptions = new()
+    public CompanyService(IMemoryCache memoryCache, ICompanyRepository companyRepository, ILogger<CompanyService> logger)
     {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7)
-    };
-
-    private readonly MemoryCacheEntryOptions _detailsCacheOptions = new()
-    {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7)
-    };
-
-    public async Task<List<Company>> SearchCompaniesAsync(string searchTerm)
-    {
-        if (string.IsNullOrWhiteSpace(searchTerm))
-        {
-            return new List<Company>();
-        }
-
-        var normalizedSearchTerm = searchTerm.Trim().ToLowerInvariant();
-        var cacheKey = $"{_searchCacheKeyPrefix}{normalizedSearchTerm}";
-
-        if (memoryCache.TryGetValue(cacheKey, out List<Company>? cachedResults))
-        {
-            logger.LogInformation("Retrieved search results from cache for term: {SearchTerm}", searchTerm);
-            return cachedResults ?? new List<Company>();
-        }
-
-        try
-        {
-            logger.LogInformation("Fetching search results from API for term: {SearchTerm}", searchTerm);
-            
-            var queryParams = new List<string>
-            {
-                $"resource_id={OrganisationResourceId}",
-                $"q={Uri.EscapeDataString(searchTerm)}",
-            };
-        
-            var url = $"https://www.data.gov.cy/api/action/datastore/search.json?{string.Join("&", queryParams)}";
-            var response = await httpClient.GetAsync(url);
-            
-            
-            var json = await response.Content.ReadAsStringAsync();
-
-            using var doc = JsonDocument.Parse(json);
-            var recordsElement = doc.RootElement
-                .GetProperty("result")
-                .GetProperty("records");
-
-            var companies = JsonSerializer.Deserialize<List<Company>>(recordsElement.GetRawText(), new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<Company>();
-
-            memoryCache.Set(cacheKey, companies, _searchCacheOptions);
-            logger.LogInformation("Cached search results for term: {SearchTerm}. Found {Count} companies", searchTerm, companies.Count);
-
-            return companies;
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Error searching organisations with term: {SearchTerm}", searchTerm);
-            throw;
-        }
+        _memoryCache = memoryCache;
+        _companyRepository = companyRepository;
+        _logger = logger;
     }
+    public async Task<bool> CacheAllCompaniesAsync()
+{
+    var pageSize = 1000; 
+    var page = 0;
+    var hasMoreRecords = true;
+    var companiesToCache = new HashSet<Organisation>(); 
+    var totalProcessed = 0;
 
-    public async Task<Company?> GetDetailedCompanyDataAsync( string registrationNo)
+    try
     {
-        if ( string.IsNullOrWhiteSpace(registrationNo))
+        while (hasMoreRecords)
         {
-            logger.LogWarning("Invalid parameters provided for GetDetailedCompanyDataAsync");
-            return null;
-        }
-
-        var cacheKey = $"{_detailsCacheKeyPrefix}{registrationNo}";
-
-        if (memoryCache.TryGetValue(cacheKey, out Company? cachedResult))
-        {
-            logger.LogInformation("Retrieved company details from cache for registration: {RegistrationNo}", registrationNo);
-            return cachedResult;
-        }
-
-        try
-        {
-            logger.LogInformation("Fetching company details from API for registration: {RegistrationNo}", registrationNo);
+            var rangeStart = page * pageSize;
+            var rangeEnd = (page + 1) * pageSize - 1;
+            _logger.LogInformation($"Fetching page {page} with range {rangeStart}-{rangeEnd} (expecting up to {pageSize} records)");
             
-            var queryParams = new List<string>
+            var res = await _companyRepository.GetAllCompanies(page, pageSize);
+
+            if (res == null || res.Count == 0)
             {
-                $"resource_id={OrganisationResourceId}",
-                $"filters[registration_no]={registrationNo}"
-            };
-            
-            var url = $"https://www.data.gov.cy/api/action/datastore/search.json?{string.Join("&", queryParams)}";
-            var response = await httpClient.GetAsync(url);
-            
-            response.EnsureSuccessStatusCode();
-            
-            var json = await response.Content.ReadAsStringAsync();
-
-            using var doc = JsonDocument.Parse(json);
-            var recordsElement = doc.RootElement
-                .GetProperty("result")
-                .GetProperty("records");
-
-            var companies = JsonSerializer.Deserialize<List<Company>>(recordsElement.GetRawText(), new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            var company = companies?.FirstOrDefault();
-            
-            memoryCache.Set(cacheKey, company, _detailsCacheOptions);
-            
-            if (company != null)
-            {
-                logger.LogInformation("Cached company details for registration: {RegistrationNo}", registrationNo);
+                _logger.LogInformation("No more records found, stopping pagination");
+                hasMoreRecords = false;
             }
             else
             {
-                logger.LogInformation("No company found for registration: {RegistrationNo} - cached null result", registrationNo);
+                var duplicatesInBatch = 0;
+                var initialCount = companiesToCache.Count;
+                
+                
+                var sampleIds = string.Join(", ", res.Take(3).Select(c => $"ID:{c.Id}"));
+                _logger.LogInformation($"Page {page}: Sample IDs from batch: {sampleIds}...");
+                
+                foreach (var company in res)
+                {
+                    if (!companiesToCache.Add(company))
+                    {
+                        duplicatesInBatch++;
+                        _logger.LogWarning($"Duplicate company found: ID:{company.Id} - {company.OrganisationName}");
+                    }
+                }
+                
+                var actuallyAdded = companiesToCache.Count - initialCount;
+                totalProcessed += res.Count;
+                
+                _logger.LogInformation($"Page {page}: Found {res.Count} companies, added {actuallyAdded} new ones, {duplicatesInBatch} duplicates");
+                
+                
+                if (res.Count < pageSize)
+                {
+                    _logger.LogInformation($"Last page detected (got {res.Count} < {pageSize})");
+                    hasMoreRecords = false;
+                }
             }
-
-            return company;
+            
+            page++;
         }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Error getting detailed company data for registrationNo: {RegistrationNo}", registrationNo);
-            throw;
-        }
+        
+        var companiesList = companiesToCache.ToList();
+        _memoryCache.Set("companies", companiesList, TimeSpan.FromDays(31));
+        
+        _logger.LogInformation($"Successfully cached {companiesList.Count} unique companies out of {totalProcessed} total records processed");
+        
+        return true;
     }
-
-    // Optional: Method to clear cache if needed
-    public void ClearCache()
+    catch (Exception e)
     {
-        if (memoryCache is MemoryCache mc)
-        {
-            mc.Clear();
-            logger.LogInformation("Cache cleared");
-        }
+        _logger.LogError(e, "Error occurred while caching companies");
+        throw;
     }
+}
 
-    // Optional: Method to clear specific search cache
-    public void ClearSearchCache(string searchTerm)
+    public Task<List<Organisation>> GetCachedCompaniesAsync()
     {
-        var normalizedSearchTerm = searchTerm.Trim().ToLowerInvariant();
-        var cacheKey = $"{_searchCacheKeyPrefix}{normalizedSearchTerm}";
-        memoryCache.Remove(cacheKey);
-        logger.LogInformation("Cleared cache for search term: {SearchTerm}", searchTerm);
+        var cachedCompanies = _memoryCache.TryGetValue("companies", out List<Organisation>? cachedOrganisations);
+        return cachedCompanies ? Task.FromResult(cachedOrganisations)! : Task.FromResult(new List<Organisation>());
     }
-
-    // Optional: Method to clear specific company details cache
-    public void ClearCompanyDetailsCache(string registrationNo)
-    {
-        var cacheKey = $"{_detailsCacheKeyPrefix}{registrationNo}";
-        memoryCache.Remove(cacheKey);
-        logger.LogInformation("Cleared cache for company with registration: {RegistrationNo}", registrationNo);
-    }
+    
+    
 }

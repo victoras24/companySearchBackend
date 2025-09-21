@@ -21,5 +21,6 @@ namespace CompanySearchBackend.Interfaces
         
         Task<List<Officials>> GetOfficialsAsync(string searchTerm);
 
+        Task<List<Organisation>> GetAllCompanies(int page, int pageSize);
     }
 }

@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using CompanySearchBackend.Models;
 using CompanySearchBackend.Interfaces;
 using CompanySearchBackend.Repository;
 using CompanySearchBackend.Services;
@@ -23,10 +21,11 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
             AutoConnectRealtime = true
         }));
 
-builder.Services.AddHttpClient<ICompanyService, CompanyService>();
 builder.Services.AddHttpClient<IAddressService, AddressService>();
 builder.Services.AddHttpClient<IOfficialService, OfficialService>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
+
 
 builder.Services.AddCors(options =>
 {
