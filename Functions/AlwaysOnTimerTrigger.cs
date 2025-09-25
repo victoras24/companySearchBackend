@@ -7,7 +7,7 @@ namespace CompanySearchBackend.Functions
         private readonly ILogger _logger = loggerFactory.CreateLogger<AlwaysOnTimerTrigger>();
         private static readonly HttpClient HttpClient = new HttpClient();
 
-        private const string BackendUrl = "https://companysearchalwayson.azurewebsites.net/api/company/open";
+        private const string BackendUrl = "https://companysearchcyprus-cshzasdadrgdcjf4.westeurope-01.azurewebsites.net/api/company/open";
 
         [Function("AlwaysOnTimerTrigger")]
         public async Task Run([TimerTrigger("0 */18 * * * *")] TimerInfo myTimer)
